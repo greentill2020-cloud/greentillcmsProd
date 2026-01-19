@@ -32,9 +32,9 @@ const ReceiptManager: React.FC = () => {
                 className="w-full p-4 rounded-2xl border border-emerald-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-emerald-900 font-medium"
               >
                 <option value="ALWAYS">Always show this promotion</option>
-                <option value="HIGH_CO2">Show if cart CO2 is > 5kg</option>
-                <option value="LOW_CO2">Show if cart is "Green" (Eco Score > 90)</option>
-                <option value="SPEND_THRESHOLD">Show if Total > $50</option>
+                <option value="HIGH_CO2">Show if cart CO2 is &gt; 5kg</option>
+                <option value="LOW_CO2">Show if cart is &quot;Green&quot; (Eco Score &gt; 90)</option>
+                <option value="SPEND_THRESHOLD">Show if Total &gt; $50</option>
               </select>
            </div>
 
