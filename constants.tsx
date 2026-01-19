@@ -1,11 +1,13 @@
 
 import React from 'react';
-import { Product, NGO, Merchant, Customer, Ad, Ticket } from './types';
+import { Product, NGO, Merchant, Customer, CESFeature, Ticket, Device } from './types';
 
 export const INITIAL_PRODUCTS: Product[] = [
-  { id: '1', name: 'Bamboo Toothbrush', price: 4.50, category: 'Home', stock: 50, ecoScore: 95, packaging: 'Paper', carbonFootprint: 0.05, image: 'https://picsum.photos/seed/bamboo/200/200' },
-  { id: '2', name: 'Organic Cotton Bag', price: 12.00, category: 'Fashion', stock: 25, ecoScore: 88, packaging: 'Reusable', carbonFootprint: 0.15, image: 'https://picsum.photos/seed/bag/200/200' },
-  { id: '3', name: 'Recycled Paper Notebook', price: 8.99, category: 'Office', stock: 40, ecoScore: 92, packaging: 'Paper', carbonFootprint: 0.08, image: 'https://picsum.photos/seed/notebook/200/200' }
+  { id: '1', name: 'Bamboo Toothbrush', price: 4.50, category: 'Home', stock: 150, ecoScore: 95, packaging: 'Paper', carbonFootprint: 0.05, image: 'https://picsum.photos/seed/bamboo/200/200' },
+  { id: '2', name: 'Organic Cotton Bag', price: 12.00, category: 'Fashion', stock: 85, ecoScore: 88, packaging: 'Reusable', carbonFootprint: 0.15, image: 'https://picsum.photos/seed/bag/200/200' },
+  { id: '3', name: 'Recycled Paper Notebook', price: 8.99, category: 'Office', stock: 120, ecoScore: 92, packaging: 'Paper', carbonFootprint: 0.08, image: 'https://picsum.photos/seed/notebook/200/200' },
+  { id: 'f1', name: 'Oak Dining Table', price: 899.00, category: 'Furniture', stock: 5, ecoScore: 82, packaging: 'Biodegradable', carbonFootprint: 45.0, image: 'https://picsum.photos/seed/table/200/200' },
+  { id: 'g1', name: 'Celtic Vase', price: 45.00, category: 'Gifts', stock: 12, ecoScore: 75, packaging: 'Paper', carbonFootprint: 2.5, image: 'https://picsum.photos/seed/vase/200/200' }
 ];
 
 export const MOCK_NGOS: NGO[] = [
@@ -14,194 +16,149 @@ export const MOCK_NGOS: NGO[] = [
   { id: 'ngo3', name: 'Climate Vault', description: 'Purchasing carbon permits to reduce supply.', category: 'Climate', location: 'USA' }
 ];
 
+const BANNERS = {
+  LEGAL: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800',
+  LOGISTICS: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=800',
+  TRACKING: 'https://images.unsplash.com/photo-1526733169359-8117173ff730?auto=format&fit=crop&q=80&w=800',
+  WARRANTY: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800',
+  MARKETING: 'https://images.unsplash.com/photo-1542601906990-b4d3fb773b09?auto=format&fit=crop&q=80&w=800'
+};
+
+const defaultTemplate = (name: string, banner: string) => ({
+  subject: `${name} - Order {{transaction_id}} Confirmed!`,
+  body: `Hi {{customer_name}},\n\nThank you for choosing us for your purchase today.\n\nAttached is your official ${name}. We are proud to operate a zero-paper policy to protect our environment.\n\nReference: {{transaction_id}}\nVisit us again soon!`,
+  lastUpdated: new Date(),
+  bannerImage: banner,
+  attachments: [
+    { id: `att_${Math.random().toString(36).substr(2, 4)}`, name: `${name.replace(/\s/g, '_')}_GT.pdf`, size: '1.4MB', type: 'PDF' as const }
+  ]
+});
+
+const generateCES = (active = true): CESFeature[] => [
+  { 
+    id: 'tc_email', name: 'Terms & Conditions', description: 'Legally mandatory documentation sent immediately after payment.', isLicensed: true, isActive: active, 
+    template: defaultTemplate('Terms & Conditions', BANNERS.LEGAL) 
+  },
+  { 
+    id: 'inv_delivery', name: 'Invoice & Delivery', description: 'Official digital invoice and estimated shipping timeline.', parentId: 'tc_email', isLicensed: true, isActive: active, 
+    template: {
+      ...defaultTemplate('Digital Invoice', BANNERS.LOGISTICS),
+      body: `Hi {{customer_name}},\n\nYour order {{transaction_id}} has been processed. Your digital invoice is attached.\n\nWe're preparing your items for dispatch. You'll receive a tracking link as soon as the driver is assigned.`,
+    } 
+  },
+  { 
+    id: 'delivery_mgmt', name: 'Delivery Tracking', description: 'Real-time logistics updates and rescheduling options.', parentId: 'inv_delivery', isLicensed: true, isActive: active, 
+    template: {
+       ...defaultTemplate('Live Tracking', BANNERS.TRACKING),
+       body: `Hi {{customer_name}},\n\nGreat news! Order {{transaction_id}} is out for delivery.\n\nYou can track your driver in real-time or reschedule if you're not home.\n\nEnjoy your new items!`
+    }
+  },
+  { 
+    id: 'receipt_goods', name: 'Confirmation of Receipt', description: 'Explicit delivery confirmation sent 6 hours post-arrival.', parentId: 'delivery_mgmt', isLicensed: true, isActive: active, 
+    template: {
+      ...defaultTemplate('Delivery Confirmed', BANNERS.LOGISTICS),
+      body: `Hi {{customer_name}},\n\nOur records show your order was delivered. We hope you love it!\n\nIf anything is missing or damaged, please reply to this email immediately.`
+    }
+  },
+  { 
+    id: 'warranty', name: 'Warranty & Aftercare', description: 'Structural certificates and product protection documentation.', parentId: 'receipt_goods', isLicensed: true, isActive: active, 
+    template: {
+       ...defaultTemplate('Protection Certificate', BANNERS.WARRANTY),
+       body: `Hi {{customer_name}},\n\nTo ensure your peace of mind, we've attached the structural warranty for your recent purchase {{transaction_id}}.\n\nDes Kelly Interiors and our partners stand by the quality of every item we sell.`
+    }
+  },
+  { 
+    id: 'marketing', name: 'Brand Engagement', description: 'Seasonal promotional offers and loyalty milestones.', isLicensed: true, isActive: active, 
+    template: defaultTemplate('Seasonal Offers', BANNERS.MARKETING) 
+  },
+];
+
 export const MOCK_MERCHANTS: Merchant[] = [
   {
-    id: 'm1',
-    name: 'Avoca Handweavers',
-    email: 'hello@avoca.ie',
+    id: 'm1', name: 'Avoca Handweavers', email: 'hello@avoca.ie',
     logo: 'https://api.dicebear.com/7.x/initials/svg?seed=AH&backgroundColor=065f46',
-    category: 'Grocery',
-    branches: [
-      { 
-        id: 'b1', name: 'Kilmacanogue HQ', location: 'Kilmacanogue, Co. Wicklow, A98 NY67', 
-        devices: [
-          { id: 'd1', serial: 'GT-AV-101', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935301...', carrier: 'Three IE', signalStrength: 92, dataUsed: '450MB' }, batteryLevel: 98 },
-          { id: 'd2', serial: 'GT-AV-102', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935302...', carrier: 'Three IE', signalStrength: 88, dataUsed: '410MB' }, batteryLevel: 85 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo1'], offsetEnabled: true, offsetMatching: true, loyaltyConfig: { type: 'SPEND', threshold: 100, reward: '€10 Voucher' }
+    category: 'Grocery', branches: [{ id: 'b1', name: 'Kilmacanogue HQ', location: 'Co. Wicklow', devices: [{ id: 'd1', serial: 'GT-AV-101', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), batteryLevel: 98, sim: { iccid: '8935301012345678901', carrier: 'Vodafone IE', signalStrength: 85, dataUsed: '1.2GB' } }], inventory: [] }],
+    selectedNGOs: ['ngo1'], offsetEnabled: true, offsetMatching: true, 
+    loyaltyConfig: { type: 'SPEND', threshold: 100, reward: '€10 Voucher', isActive: true, couponDesign: { backgroundColor: '#065f46', textColor: '#ffffff', discountValue: '€10', prefix: 'AVO' } },
+    cesConfig: { features: generateCES(), marketingPeriod: 'WEEKLY', reviewLink: 'https://trustpilot.com/avoca' }
   },
   {
-    id: 'm2',
-    name: "Butler's Chocolate Cafe",
-    email: 'cafe@butlers.ie',
+    id: 'm11', name: 'Des Kelly Interiors', email: 'sales@deskelly.ie',
+    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=DK&backgroundColor=1e293b',
+    category: 'Grocery',
+    branches: [
+      { id: 'b11a', name: 'Glasnevin', location: 'Dublin 11', devices: [{ id: 'd11a', serial: 'GT-DK-110', model: 'T1 Max', version: '2.5.0', status: 'ONLINE', lastPing: new Date(), batteryLevel: 100, sim: { iccid: '8935301111111111111', carrier: 'Three IE', signalStrength: 92, dataUsed: '2.4GB' } }], inventory: [] },
+      { id: 'b11b', name: 'Donaghmede', location: 'Dublin 13', devices: [{ id: 'd11b', serial: 'GT-DK-111', model: 'T1 Lite', version: '2.5.0', status: 'MAINTENANCE', lastPing: new Date(), batteryLevel: 42, sim: { iccid: '8935301111111111112', carrier: 'Three IE', signalStrength: 30, dataUsed: '0.8GB' } }], inventory: [] }
+    ],
+    selectedNGOs: ['ngo3'], offsetEnabled: true, offsetMatching: true, 
+    loyaltyConfig: { type: 'SPEND', threshold: 500, reward: 'Free Fitting', isActive: true, couponDesign: { backgroundColor: '#1e293b', textColor: '#ffffff', discountValue: 'FITTING', prefix: 'DKI' } },
+    cesConfig: { features: generateCES(), marketingPeriod: 'MONTHLY', reviewLink: '' }
+  },
+  {
+    id: 'm12', name: 'Right Style Furniture', email: 'info@rightstyle.ie',
+    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=RS&backgroundColor=b91c1c',
+    category: 'Grocery',
+    branches: [{ id: 'b12', name: 'Belgard Rd', location: 'Tallaght', devices: [{ id: 'd12', serial: 'GT-RS-201', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), batteryLevel: 75, sim: { iccid: '8935301222222222222', carrier: 'Eir', signalStrength: 65, dataUsed: '4.1GB' } }], inventory: [] }],
+    selectedNGOs: ['ngo2'], offsetEnabled: true, offsetMatching: false, 
+    loyaltyConfig: { type: 'SPEND', threshold: 1000, reward: 'Free Underlay', isActive: true, couponDesign: { backgroundColor: '#b91c1c', textColor: '#ffffff', discountValue: 'FREE', prefix: 'RSF' } },
+    cesConfig: { features: generateCES(), marketingPeriod: 'QUARTERLY', reviewLink: '' }
+  },
+  {
+    id: 'm13', name: 'Irish Gifts', email: 'gifts@irishgifts.ie',
+    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=IG&backgroundColor=15803d',
+    category: 'Cafe',
+    branches: [{ id: 'b13', name: 'Grafton St', location: 'Dublin 2', devices: [{ id: 'd13', serial: 'GT-IG-301', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), batteryLevel: 99, sim: { iccid: '8935301333333333333', carrier: 'Vodafone IE', signalStrength: 98, dataUsed: '1.5GB' } }], inventory: [] }],
+    selectedNGOs: ['ngo1'], offsetEnabled: true, offsetMatching: true, 
+    loyaltyConfig: { type: 'VISIT', threshold: 10, reward: 'Celtic Mug', isActive: true, stampDesign: { slots: 10, color: '#15803d', icon: 'Leaf' } },
+    cesConfig: { features: generateCES(), marketingPeriod: 'WEEKLY', reviewLink: '' }
+  },
+  {
+    id: 'm2', name: "Butler's Chocolate Cafe", email: 'cafe@butlers.ie',
     logo: 'https://api.dicebear.com/7.x/initials/svg?seed=BC&backgroundColor=78350f',
-    category: 'Cafe',
-    branches: [
-      { 
-        id: 'b2', name: 'Grafton Street', location: '24 Grafton St, Dublin 2, D02 H654', 
-        devices: [
-          { id: 'd3', serial: 'GT-BU-201', model: 'T1 Pro', version: '2.4.0', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935303...', carrier: 'Vodafone IE', signalStrength: 95, dataUsed: '1.2GB' }, batteryLevel: 100 },
-          { id: 'd4', serial: 'GT-BU-202', model: 'T1 Pro', version: '2.4.0', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935304...', carrier: 'Vodafone IE', signalStrength: 82, dataUsed: '1.1GB' }, batteryLevel: 45 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo2'], offsetEnabled: true, offsetMatching: false, loyaltyConfig: { type: 'VISIT', threshold: 10, reward: 'Free Hot Chocolate' }
+    category: 'Cafe', branches: [{ id: 'b2', name: 'Wicklow St', location: 'Dublin 2', devices: [{ id: 'd2', serial: 'GT-BC-201', model: 'T1 Pro', status: 'ONLINE', lastPing: new Date(), version: '2.4', batteryLevel: 88, sim: { iccid: '8935301000000000002', carrier: 'Three IE', signalStrength: 75, dataUsed: '2.2GB' } }], inventory: [] }], selectedNGOs: ['ngo2'], offsetEnabled: true, offsetMatching: false, 
+    loyaltyConfig: { type: 'VISIT', threshold: 10, reward: 'Hot Chocolate', isActive: true, stampDesign: { slots: 10, color: '#78350f', icon: 'Sparkles' } },
+    cesConfig: { features: generateCES(false), marketingPeriod: 'MONTHLY', reviewLink: '' }
   },
   {
-    id: 'm3',
-    name: 'Fallon & Byrne',
-    email: 'info@fallonandbyrne.com',
+    id: 'm3', name: 'Fallon & Byrne', email: 'info@fallonandbyrne.com',
     logo: 'https://api.dicebear.com/7.x/initials/svg?seed=FB&backgroundColor=111827',
-    category: 'Grocery',
-    branches: [
-      { 
-        id: 'b3', name: 'Exchequer St', location: '11-17 Exchequer St, Dublin 2, D02 CY67', 
-        devices: [
-          { id: 'd5', serial: 'GT-FB-301', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935305...', carrier: 'Eir', signalStrength: 78, dataUsed: '2.5GB' }, batteryLevel: 92 },
-          { id: 'd6', serial: 'GT-FB-302', model: 'T1 Pro', version: '2.4.1', status: 'OFFLINE', lastPing: new Date(Date.now() - 7200000), sim: { iccid: '8935306...', carrier: 'Eir', signalStrength: 0, dataUsed: '2.1GB' }, batteryLevel: 5 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo1', 'ngo3'], offsetEnabled: true, offsetMatching: true, loyaltyConfig: { type: 'SPEND', threshold: 200, reward: 'Wine Tasting for 2' }
+    category: 'Grocery', branches: [{ id: 'b3', name: 'Exchequer St', location: 'Dublin 2', devices: [{ id: 'd3', serial: 'GT-FB-01', model: 'T1 Pro', status: 'ONLINE', lastPing: new Date(), version: '2.4', batteryLevel: 92, sim: { iccid: '8935301000000000003', carrier: 'Eir', signalStrength: 60, dataUsed: '3.1GB' } }], inventory: [] }],
+    selectedNGOs: ['ngo1'], offsetEnabled: true, offsetMatching: true, 
+    loyaltyConfig: { type: 'SPEND', threshold: 200, reward: 'Wine', isActive: false },
+    cesConfig: { features: generateCES(), marketingPeriod: 'MONTHLY', reviewLink: '' }
   },
   {
-    id: 'm4',
-    name: "Murphy's Ice Cream",
-    email: 'info@murphys.ie',
-    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=MC&backgroundColor=0ea5e9',
-    category: 'Cafe',
-    branches: [
-      { 
-        id: 'b4', name: 'Wicklow St', location: '27 Wicklow St, Dublin 2, D02 H293', 
-        devices: [
-          { id: 'd7', serial: 'GT-MU-401', model: 'T1 Lite', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935307...', carrier: 'Three IE', signalStrength: 85, dataUsed: '800MB' }, batteryLevel: 75 },
-          { id: 'd8', serial: 'GT-MU-402', model: 'T1 Lite', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935308...', carrier: 'Three IE', signalStrength: 82, dataUsed: '750MB' }, batteryLevel: 68 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo1'], offsetEnabled: true, offsetMatching: false, loyaltyConfig: { type: 'VISIT', threshold: 5, reward: 'Free Double Scoop' }
+    id: 'm4', name: "Murphy's Ice Cream", email: 'hello@murphys.ie',
+    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=MI&backgroundColor=0ea5e9',
+    category: 'Cafe', branches: [{ id: 'b4', name: 'Dingle HQ', location: 'Dingle, Kerry', devices: [{ id: 'd4', serial: 'GT-MI-001', model: 'T1 Lite', status: 'OFFLINE', lastPing: new Date(Date.now() - 3600000), batteryLevel: 12, version: '2.1', sim: { iccid: '8935301444444444444', carrier: 'Vodafone IE', signalStrength: 0, dataUsed: '0.1GB' } }], inventory: [] }],
+    selectedNGOs: ['ngo1'], offsetEnabled: true, offsetMatching: true, 
+    loyaltyConfig: { type: 'VISIT', threshold: 5, reward: 'Free Scoop', isActive: true, stampDesign: { slots: 5, color: '#0ea5e9', icon: 'Star' } },
+    cesConfig: { features: generateCES(), marketingPeriod: 'WEEKLY', reviewLink: '' }
   },
   {
-    id: 'm5',
-    name: 'The Happy Pear',
-    email: 'shop@thehappypear.ie',
-    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=HP&backgroundColor=f59e0b',
-    category: 'Grocery',
-    branches: [
-      { 
-        id: 'b5', name: 'Greystones Main St', location: 'Church Rd, Greystones, Co. Wicklow, A63 FK21', 
-        devices: [
-          { id: 'd9', serial: 'GT-HP-501', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935309...', carrier: 'Vodafone IE', signalStrength: 90, dataUsed: '1.4GB' }, batteryLevel: 88 },
-          { id: 'd10', serial: 'GT-HP-502', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935310...', carrier: 'Vodafone IE', signalStrength: 89, dataUsed: '1.3GB' }, batteryLevel: 91 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo2'], offsetEnabled: true, offsetMatching: true, loyaltyConfig: { type: 'SPEND', threshold: 50, reward: 'Cookbook' }
+    id: 'm5', name: 'Keogh\'s Farm', email: 'crisps@keoghs.ie',
+    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=KF&backgroundColor=15803d',
+    category: 'Grocery', branches: [{ id: 'b5', name: 'North Road', location: 'Oldtown, Dublin', devices: [{ id: 'd5', serial: 'GT-KF-501', model: 'T1 Max', status: 'ONLINE', lastPing: new Date(), batteryLevel: 95, version: '2.5', sim: { iccid: '8935301555555555555', carrier: 'Three IE', signalStrength: 88, dataUsed: '5.5GB' } }], inventory: [] }],
+    selectedNGOs: ['ngo2'], offsetEnabled: true, offsetMatching: true, 
+    loyaltyConfig: { type: 'VISIT', threshold: 1, reward: 'Crisp Pack', isActive: true },
+    cesConfig: { features: generateCES(), marketingPeriod: 'WEEKLY', reviewLink: '' }
   },
   {
-    id: 'm6',
-    name: 'Sheridans Cheesemongers',
-    email: 'info@sheridans.ie',
-    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=SC&backgroundColor=166534',
-    category: 'Grocery',
-    branches: [
-      { 
-        id: 'b6', name: 'South Anne St', location: '11 South Anne St, Dublin 2, D02 RF43', 
-        devices: [
-          { id: 'd11', serial: 'GT-SH-601', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935311...', carrier: 'Eir', signalStrength: 75, dataUsed: '300MB' }, batteryLevel: 100 },
-          { id: 'd12', serial: 'GT-SH-602', model: 'T1 Pro', version: '2.4.1', status: 'MAINTENANCE', lastPing: new Date(), sim: { iccid: '8935312...', carrier: 'Eir', signalStrength: 65, dataUsed: '250MB' }, batteryLevel: 100 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo1'], offsetEnabled: true, offsetMatching: false, loyaltyConfig: { type: 'VISIT', threshold: 12, reward: 'Cheese Board' }
-  },
-  {
-    id: 'm7',
-    name: "McCambridge's of Galway",
-    email: 'orders@mccambridges.com',
-    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=MG&backgroundColor=dc2626',
-    category: 'Grocery',
-    branches: [
-      { 
-        id: 'b7', name: 'Shop Street', location: '38-39 Shop St, Galway, H91 P923', 
-        devices: [
-          { id: 'd13', serial: 'GT-MC-701', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935313...', carrier: 'Three IE', signalStrength: 91, dataUsed: '1.1GB' }, batteryLevel: 94 },
-          { id: 'd14', serial: 'GT-MC-702', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935314...', carrier: 'Three IE', signalStrength: 88, dataUsed: '900MB' }, batteryLevel: 92 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo3'], offsetEnabled: true, offsetMatching: true, loyaltyConfig: { type: 'SPEND', threshold: 150, reward: 'Luxury Hamper' }
-  },
-  {
-    id: 'm8',
-    name: 'O\'Conaill Chocolate',
-    email: 'shop@oconaillchocolate.ie',
-    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=OC&backgroundColor=451a03',
-    category: 'Cafe',
-    branches: [
-      { 
-        id: 'b8', name: 'French Church St', location: '16 French Church St, Cork, T12 WR54', 
-        devices: [
-          { id: 'd15', serial: 'GT-OC-801', model: 'T1 Pro', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935315...', carrier: 'Vodafone IE', signalStrength: 94, dataUsed: '600MB' }, batteryLevel: 81 },
-          { id: 'd16', serial: 'GT-OC-802', model: 'T1 Pro', version: '2.4.1', status: 'POWERED_OFF', lastPing: new Date(Date.now() - 86400000), sim: { iccid: '8935316...', carrier: 'Vodafone IE', signalStrength: 0, dataUsed: '550MB' }, batteryLevel: 0 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo2'], offsetEnabled: true, offsetMatching: false, loyaltyConfig: { type: 'VISIT', threshold: 8, reward: 'Box of Pralines' }
-  },
-  {
-    id: 'm9',
-    name: 'Keogh\'s Farm',
-    email: 'crisps@keoghs.ie',
-    logo: 'https://api.dicebear.com/7.x/initials/svg?seed=KF&backgroundColor=3f6212',
-    category: 'Grocery',
-    branches: [
-      { 
-        id: 'b9', name: 'Farm Shop', location: 'Oldtown, Co. Dublin, A45 R543', 
-        devices: [
-          { id: 'd17', serial: 'GT-KE-901', model: 'T1 Lite', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935317...', carrier: 'Eir', signalStrength: 72, dataUsed: '200MB' }, batteryLevel: 99 },
-          { id: 'd18', serial: 'GT-KE-902', model: 'T1 Lite', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935318...', carrier: 'Eir', signalStrength: 70, dataUsed: '180MB' }, batteryLevel: 95 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo1'], offsetEnabled: true, offsetMatching: true, loyaltyConfig: { type: 'SPEND', threshold: 30, reward: 'Multipack of Crisps' }
-  },
-  {
-    id: 'm10',
-    name: 'SuperValu Ireland',
-    email: 'ops@supervalu.ie',
+    id: 'm10', name: 'SuperValu Ireland', email: 'ops@supervalu.ie',
     logo: 'https://api.dicebear.com/7.x/initials/svg?seed=SV&backgroundColor=b91c1c',
-    category: 'Grocery',
-    branches: [
-      { 
-        id: 'b10-1', name: 'Blackrock Shopping Centre', location: 'Blackrock, Co. Dublin, A94 E7V1', 
-        devices: [
-          { id: 'd19', serial: 'GT-SV-1001', model: 'T1 Max', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935319...', carrier: 'Three IE', signalStrength: 96, dataUsed: '5.2GB' }, batteryLevel: 100 }
-        ] 
-      },
-      { 
-        id: 'b10-2', name: 'Kinsale Branch', location: 'Glen-na-vanna, Kinsale, Co. Cork, P17 K231', 
-        devices: [
-          { id: 'd20', serial: 'GT-SV-1002', model: 'T1 Max', version: '2.4.1', status: 'ONLINE', lastPing: new Date(), sim: { iccid: '8935320...', carrier: 'Three IE', signalStrength: 89, dataUsed: '4.8GB' }, batteryLevel: 98 }
-        ] 
-      }
-    ],
-    selectedNGOs: ['ngo2'], offsetEnabled: true, offsetMatching: true, loyaltyConfig: { type: 'VISIT', threshold: 1, reward: '10 Real Rewards Points' }
+    category: 'Grocery', branches: [{ id: 'b10', name: 'Blackrock', location: 'Dublin', devices: [{ id: 'd10', serial: 'GT-SV-99', model: 'T1 Max', status: 'ONLINE', lastPing: new Date(), version: '3.0', batteryLevel: 100, sim: { iccid: '8935301999999999999', carrier: 'Vodafone IE', signalStrength: 100, dataUsed: '12.2GB' } }], inventory: [] }], selectedNGOs: ['ngo2'], offsetEnabled: true, offsetMatching: true, 
+    loyaltyConfig: { type: 'VISIT', threshold: 1, reward: 'Points', isActive: true },
+    cesConfig: { features: generateCES(), marketingPeriod: 'DAILY', reviewLink: '' }
   }
 ];
 
-export const MOCK_TICKETS: Ticket[] = [
-  { id: 'TK-101', merchantId: 'm1', branchId: 'b1', deviceId: 'd1', subject: 'Printer jam on terminal', status: 'OPEN', priority: 'HIGH', createdAt: new Date() },
-  { id: 'TK-102', merchantId: 'm3', branchId: 'b3', deviceId: 'd6', subject: 'Network connectivity dropped', status: 'IN_PROGRESS', priority: 'MEDIUM', createdAt: new Date(Date.now() - 86400000) },
-  { id: 'TK-103', merchantId: 'm8', branchId: 'b8', deviceId: 'd16', subject: 'Terminal won\'t power on', status: 'OPEN', priority: 'HIGH', createdAt: new Date(Date.now() - 3600000) }
+export const MOCK_CUSTOMERS: Customer[] = [
+  { id: 'c1', name: 'Siobhan O\'Neill', email: 'siobhan@example.ie', visitCount: 18, totalSpend: 450.50, lastVisit: new Date(), consentFlags: { transactional: true, marketing: false } },
+  { id: 'c2', name: 'Liam Murphy', email: 'liam@domain.com', visitCount: 5, totalSpend: 120.00, lastVisit: new Date(), consentFlags: { transactional: true, marketing: true } }
 ];
 
-export const MOCK_CUSTOMERS: Customer[] = [
-  { id: 'c1', name: 'Siobhan O\'Neill', email: 'siobhan@example.ie', visitCount: 18, totalSpend: 450.50, lastVisit: new Date() },
-  { id: 'c2', name: 'Liam Murphy', email: 'liam@example.ie', visitCount: 5, totalSpend: 120.00, lastVisit: new Date(Date.now() - 86400000 * 2) },
-  { id: 'c3', name: 'Cian Kelly', email: 'cian@example.ie', visitCount: 12, totalSpend: 280.75, lastVisit: new Date(Date.now() - 86400000 * 5) }
+export const MOCK_TICKETS: Ticket[] = [
+  { id: 'TKT-101', merchantId: 'm4', deviceId: 'd4', subject: 'Device heartbeat lost', priority: 'HIGH', status: 'OPEN', createdAt: new Date() }
 ];
 
 export const ICONS = {
@@ -215,12 +172,14 @@ export const ICONS = {
   Receipt: (props: any) => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>,
   Users: (props: any) => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
   Lock: (props: any) => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>,
+  Sparkles: (props: any) => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" /></svg>,
+  Star: (props: any) => <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
   Logo: () => (
-    <div className="grid grid-cols-2 gap-1.5 w-8 h-8">
-      <div className="bg-[#1e293b] rounded-lg"></div>
-      <div className="bg-[#10b981] rounded-tl-2xl rounded-tr-md rounded-br-md rounded-bl-md"></div>
-      <div className="bg-[#1e293b] rounded-lg"></div>
-      <div className="bg-[#1e293b] rounded-lg"></div>
+    <div className="grid grid-cols-2 gap-[4px] w-8 h-8">
+      <div className="bg-[#1e293b] rounded-[4px]"></div>
+      <div className="bg-[#10b981] rounded-tl-[14px] rounded-tr-[4px] rounded-br-[4px] rounded-bl-[4px] shadow-sm shadow-emerald-500/10"></div>
+      <div className="bg-[#1e293b] rounded-[4px]"></div>
+      <div className="bg-[#1e293b] rounded-[4px]"></div>
     </div>
   )
 };

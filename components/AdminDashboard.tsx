@@ -33,24 +33,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ merchants, tickets }) =
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Top Operations Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 text-left">
           <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Total Merchants</p>
           <p className="text-4xl font-black text-slate-900 mt-1">{merchants.length}</p>
           <div className="mt-2 text-xs text-emerald-600 font-bold">Active in 4 Provinces</div>
         </div>
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 text-left">
           <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Global Fleet</p>
           <p className="text-4xl font-black text-slate-900 mt-1">{allDevices.length}</p>
           <div className="mt-2 text-xs text-slate-500 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {terminalStats[0].value} T1 Terminals Live
           </div>
         </div>
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 text-left">
           <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Alerts / Offline</p>
           <p className="text-4xl font-black text-rose-500 mt-1">{allDevices.filter(d => d.status === 'OFFLINE' || d.status === 'POWERED_OFF').length}</p>
           <div className="mt-2 text-xs text-rose-400 font-bold">Require immediate attention</div>
         </div>
-        <div className="bg-emerald-900 p-6 rounded-3xl shadow-lg text-white">
+        <div className="bg-emerald-900 p-6 rounded-3xl shadow-lg text-white text-left">
           <p className="text-emerald-300 text-[10px] font-bold uppercase tracking-widest">Support Queue</p>
           <p className="text-4xl font-black mt-1">{openTickets}</p>
           <div className="mt-2 text-xs text-emerald-400 font-bold">Average response: 12m</div>
@@ -58,9 +58,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ merchants, tickets }) =
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Fleet Distribution Pie */}
         <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm flex flex-col h-[450px]">
-          <h3 className="text-xl font-black text-slate-900 mb-6 font-heading">Fleet Health Status</h3>
+          <h3 className="text-xl font-black text-slate-900 mb-6 font-heading text-left">Fleet Health Status</h3>
           <div className="flex-1 min-h-0">
              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -71,7 +70,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ merchants, tickets }) =
                   </Pie>
                   <Tooltip 
                     contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    itemStyle={{ fontWeight: 'bold' }}
                   />
                 </PieChart>
              </ResponsiveContainer>
@@ -89,9 +87,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ merchants, tickets }) =
           </div>
         </div>
 
-        {/* Merchant Segmentation Pie */}
         <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm flex flex-col h-[450px]">
-          <h3 className="text-xl font-black text-slate-900 mb-6 font-heading">Merchant Verticals</h3>
+          <h3 className="text-xl font-black text-slate-900 mb-6 font-heading text-left">Merchant Verticals</h3>
           <div className="flex-1 min-h-0">
              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -120,8 +117,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ merchants, tickets }) =
         </div>
       </div>
 
-      {/* Terminal Real-Time Cockpit */}
-      <div className="bg-[#0f172a] p-10 rounded-[50px] shadow-2xl overflow-hidden relative border border-white/5">
+      <div className="bg-[#0f172a] p-10 rounded-[50px] shadow-2xl overflow-hidden relative border border-white/5 text-left">
          <div className="absolute top-0 right-0 p-10 opacity-10">
             <UI_ICONS.Signal className="w-64 h-64 text-emerald-400" />
          </div>
@@ -136,15 +132,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ merchants, tickets }) =
                </button>
             </div>
             <div className="grid grid-cols-1 gap-4 max-h-[500px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-slate-700">
-               {/* Fixed: Restructured nested iteration to maintain access to 'm' (merchant) and 'b' (branch) scope for each device 'd' */}
                {merchants.flatMap(m => m.branches.flatMap(b => b.devices.map(d => {
                  const openTicket = tickets.find(t => t.deviceId === d.id && t.status !== 'CLOSED');
-
                  return (
                  <div key={d.id} className={`bg-white/5 border ${openTicket ? 'border-rose-500/30 bg-rose-500/5' : 'border-white/10'} p-5 rounded-[30px] flex items-center justify-between hover:bg-white/10 transition-all group`}>
                     <div className="flex items-center gap-6">
                        <div className="relative">
-                         <div className={`w-4 h-4 rounded-full ${d.status === 'ONLINE' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-pulse' : d.status === 'POWERED_OFF' ? 'bg-slate-700' : 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]'}`}></div>
+                         <div className={`w-4 h-4 rounded-full ${d.status === 'ONLINE' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-pulse' : d.status === 'POWERED_OFF' ? 'bg-slate-700' : d.status === 'MAINTENANCE' ? 'bg-amber-500' : 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]'}`}></div>
                          {openTicket && (
                            <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full border-2 border-[#0f172a]">TICKET</div>
                          )}
@@ -154,7 +148,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ merchants, tickets }) =
                             <p className="text-sm font-black text-white uppercase tracking-wider">{d.serial}</p>
                             <span className="text-[10px] bg-white/10 text-slate-400 px-2 py-0.5 rounded-lg font-bold">{d.model}</span>
                           </div>
-                          {/* Updated: Using merchant 'm' and branch 'b' names directly from the outer iteration scope */}
                           <p className="text-[11px] text-slate-500 font-bold uppercase mt-1">Merchant: {m.name} | Branch: {b.name}</p>
                        </div>
                     </div>
@@ -170,9 +163,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ merchants, tickets }) =
                        <div className="flex flex-col items-end min-w-[60px]">
                           <p className="text-[10px] text-slate-500 uppercase font-bold mb-1 tracking-tighter">Battery</p>
                           <div className="flex items-center gap-2">
-                            <span className={`text-xs font-black ${d.batteryLevel && d.batteryLevel < 20 ? 'text-rose-400' : 'text-emerald-400'}`}>{d.batteryLevel}%</span>
+                            <span className={`text-xs font-black ${d.batteryLevel && d.batteryLevel < 20 ? 'text-rose-400' : 'text-emerald-400'}`}>{d.batteryLevel || 0}%</span>
                             <div className="w-8 h-3.5 bg-slate-800 rounded-sm border border-slate-700 p-0.5 relative overflow-hidden">
-                              <div className={`h-full rounded-sm ${d.batteryLevel && d.batteryLevel < 20 ? 'bg-rose-500' : 'bg-emerald-500'}`} style={{width: `${d.batteryLevel}%`}}></div>
+                              <div className={`h-full rounded-sm ${d.batteryLevel && d.batteryLevel < 20 ? 'bg-rose-500' : 'bg-emerald-500'}`} style={{width: `${d.batteryLevel || 0}%`}}></div>
                             </div>
                           </div>
                        </div>

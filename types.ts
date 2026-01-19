@@ -13,38 +13,106 @@ export interface Product {
   image?: string;
 }
 
-export interface Ad {
-  id: string;
-  imageUrl: string;
-  name: string;
-  isActive: boolean;
-  rotationSpeed: number; // seconds
+export interface InventoryItem {
+  productId: string;
+  quantity: number;
+  minThreshold: number;
 }
 
-export interface NGO {
+export interface Attachment {
+  id: string;
+  name: string;
+  size: string;
+  type: 'PDF' | 'IMAGE' | 'DOC';
+}
+
+export interface EmailTemplate {
+  subject: string;
+  body: string;
+  lastUpdated: Date;
+  bannerImage?: string;
+  attachments?: Attachment[];
+}
+
+export interface CESFeature {
   id: string;
   name: string;
   description: string;
-  category: 'Ocean' | 'Forest' | 'Climate';
-  location: string;
+  parentId?: string;
+  isLicensed: boolean; // Admin level
+  isActive: boolean;   // Merchant level
+  template: EmailTemplate;
 }
 
-export interface Ticket {
+export interface LoyaltyConfig {
+  type: 'VISIT' | 'SPEND';
+  threshold: number;
+  reward: string;
+  isActive: boolean;
+  couponDesign?: {
+    backgroundColor: string;
+    textColor: string;
+    discountValue: string;
+    prefix: string;
+  };
+  stampDesign?: {
+    slots: number;
+    color: string;
+    icon: string;
+  };
+}
+
+export interface CESConfig {
+  features: CESFeature[];
+  calendarSyncId?: string;
+  marketingPeriod: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY';
+  reviewLink: string; // TrustPilot, Google, etc.
+}
+
+export interface EngagementLog {
   id: string;
-  merchantId: string;
-  branchId: string;
-  deviceId: string;
-  subject: string;
-  status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  createdAt: Date;
+  timestamp: Date;
+  customerId: string;
+  transactionId: string;
+  featureId: string;
+  status: 'SENT' | 'BLOCKED_CONSENT' | 'FAILED';
+  reason?: string;
 }
 
-export interface SIM {
-  iccid: string;
-  carrier: string;
-  signalStrength: number; // 0-100
-  dataUsed: string;
+export interface Merchant {
+  id: string;
+  name: string;
+  email: string;
+  logo?: string;
+  category: 'Grocery' | 'Cafe' | 'Grocery';
+  branches: Branch[];
+  selectedNGOs: string[];
+  offsetEnabled: boolean;
+  offsetMatching: boolean;
+  loyaltyConfig: LoyaltyConfig;
+  cesConfig: CESConfig;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  visitCount: number;
+  totalSpend: number;
+  lastVisit: Date;
+  consentFlags: {
+    transactional: boolean;
+    marketing: boolean;
+  };
+}
+
+export interface Branch {
+  id: string;
+  name: string;
+  location: string;
+  isOnline?: boolean;
+  devices: Device[];
+  inventory: InventoryItem[];
 }
 
 export interface Device {
@@ -54,32 +122,13 @@ export interface Device {
   version: string;
   status: 'ONLINE' | 'OFFLINE' | 'MAINTENANCE' | 'POWERED_OFF';
   lastPing: Date;
-  sim?: SIM;
-  batteryLevel?: number;
-}
-
-export interface Branch {
-  id: string;
-  name: string;
-  location: string;
-  devices: Device[];
-}
-
-export interface Merchant {
-  id: string;
-  name: string;
-  email: string;
-  logo?: string;
-  category: 'Grocery' | 'Fashion' | 'Tech' | 'Cafe';
-  branches: Branch[];
-  selectedNGOs: string[];
-  offsetEnabled: boolean;
-  offsetMatching: boolean;
-  loyaltyConfig: {
-    type: 'VISIT' | 'SPEND';
-    threshold: number;
-    reward: string;
+  sim?: {
+    iccid: string;
+    carrier: string;
+    signalStrength: number;
+    dataUsed: string;
   };
+  batteryLevel?: number;
 }
 
 export interface Transaction {
@@ -96,15 +145,25 @@ export interface Transaction {
   isMatched: boolean;
   timestamp: Date;
   customerId?: string;
+  branchId?: string;
 }
 
-export interface Customer {
+export interface NGO {
   id: string;
   name: string;
-  email: string;
-  visitCount: number;
-  totalSpend: number;
-  lastVisit: Date;
+  description: string;
+  category: string;
+  location: string;
+}
+
+export interface Ticket {
+  id: string;
+  merchantId: string;
+  deviceId: string;
+  subject: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
+  createdAt: Date;
 }
 
 export type View = 
@@ -118,4 +177,5 @@ export type View =
   | 'carbon_mgmt'
   | 'loyalty_mgmt'
   | 'customers'
+  | 'engagement_mgmt'
   | 'support';
