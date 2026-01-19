@@ -1,0 +1,7 @@
+{
+  "name": "GreenTill CMS",
+  "description": "A sustainable, eco-conscious POS and inventory management system with AI-driven sustainability auditing and sales insights.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
