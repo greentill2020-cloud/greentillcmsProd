@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 [context]
   # Optional: set to false in local dev to avoid Netlify specific behaviours
   # Note: Netlify will pick up this file automatically when pushing to the repo.
